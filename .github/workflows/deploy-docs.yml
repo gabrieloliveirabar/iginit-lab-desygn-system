@@ -1,11 +1,10 @@
-name: Deploy docs
+name: Deploy StoryBook
 
-on:
+on: 
   push:
     branches:
       - main
-
-jobs:
+jobs: 
   build-and-deploy:
     runs-on: ubuntu-latest
 
@@ -13,23 +12,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
+      - name: Setup Node.JS
         uses: actions/setup-node@v3
         with:
           node-version: 16
-          cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
 
-      - run: npm ci --legacy-peer-deps
+      - name: Install dependencies
+        run: yarn
 
-      - run: npm run build-storybook
+      - name: Linter
+        run: yarn lint
+
+      - name: Typecheck
+        run: yarn typecheck
+
+      - name: Build StoryBook
+        run: yarn build-storybook
+
+      - name: Deploy StoryBook
+        run: yarn deploy-storybook -- --ci --existing-output-dir=storybook-static
         env:
-          TURBO_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          TURBO_TEAM: rocketseat
-
-      - name: Deploy storybook
-        working-directory: ./packages/docs
-        run: npm run deploy-storybook -- --ci --existing-output-dir=storybook-static
-        env:
-
           GH_TOKEN: ${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}
